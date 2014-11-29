@@ -39,10 +39,16 @@
 %% Public API
 %% ===================================================================
 
-compile(Config, _AppFile) ->
+compile(Config, Dir) ->
     FirstFiles = rebar_config:get_list(Config, lfe_first_files, []),
-    rebar_base_compiler:run(Config, FirstFiles, "src", ".lfe", "ebin", ".beam",
-                            fun compile_lfe/3).
+    rebar_base_compiler:run(Config,
+                            check_files(rebar_state:get(
+                                          Config, lfe_first_files, [])),
+                            filename:join(Dir, "src"),
+                            ".lfe",
+                            filename:join(Dir, "ebin"),
+                            ".beam",
+                            fun compile_lfe/3),
 
 %% ===================================================================
 %% Internal functions
