@@ -26,7 +26,6 @@
 %% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 %% THE SOFTWARE.
 %% -------------------------------------------------------------------
-
 -module(rebar_prv_lfe_compiler).
 
 -behaviour(provider).
@@ -46,29 +45,33 @@
 %% ===================================================================
 %% Public API
 %% ===================================================================
+
 -spec init(rebar_state:t()) -> {ok, rebar_state:t()}.
 init(State) ->
-    State1 = rebar_state:add_provider(State, providers:create([{name, ?PROVIDER},
-                                                               {module, ?MODULE},
-                                                               {bare, false},
-                                                               {deps, ?DEPS},
-                                                               {example, "rebar lfe compile"},
-                                                               {short_desc, "Compile LFE source files."},
-                                                               {desc, ""},
-                                                               {opts, []}])),
+    Provider = providers:create([
+        {name, ?PROVIDER},
+        {module, ?MODULE},
+        {bare, false},
+        {deps, ?DEPS},
+        {example, "rebar lfe compile"},
+        {short_desc, "Compile LFE source files."},
+        {desc, info()},
+        {opts, []}
+    ]),
+    State1 = rebar_state:add_provider(State, Provider),
     {ok, State1}.
 
-do(Config) ->
+do(State) ->
     Cwd = rebar_utils:get_cwd(),
-    FirstFiles = check_files(rebar_state:get(Config, lfe_first_files, [])),
-    Result = rebar_base_compiler:run(Config,
-                                     FirstFiles
+    FirstFiles = check_files(rebar_state:get(State, lfe_first_files, [])),
+    Result = rebar_base_compiler:run(State,
+                                     FirstFiles,
                                      filename:join(Cwd, "src"),
                                      ".lfe",
                                      filename:join(Cwd, "ebin"),
                                      ".beam",
                                      fun compile_lfe/3),
-    {Result, Config}.
+    {Result, State}.
 
 -spec format_error(any()) ->  iolist().
 format_error(Reason) ->
@@ -77,16 +80,18 @@ format_error(Reason) ->
 %% ===================================================================
 %% Internal functions
 %% ===================================================================
+info() ->
+    info(help, compile).
 
 info(help, compile) ->
     ?CONSOLE(
        "Build Lisp Flavoured Erlang (*.lfe) sources.~n"
        "~n"
        "Valid rebar.config options:~n"
-       "  erl_opts is reused.'~n",
+       "  erl_opts is reused.~n",
        []).
 
-compile_lfe(Source, _Target, Config) ->
+compile_lfe(Source, _Target, State) ->
     case code:which(lfe_comp) of
         non_existing ->
             ?ERROR("~n"
@@ -100,13 +105,13 @@ compile_lfe(Source, _Target, Config) ->
                    "~n", []),
             ?FAIL;
         _ ->
-            ErlOpts = rebar_utils:erl_opts(Config),
+            ErlOpts = rebar_utils:erl_opts(State),
             Opts = [{i, "include"}, {outdir, "ebin"}, return] ++ ErlOpts,
             case lfe_comp:file(Source, Opts) of
                 {ok, _Mod, Ws} ->
-                    rebar_base_compiler:ok_tuple(Config, Source, Ws);
+                    rebar_base_compiler:ok_tuple(State, Source, Ws);
                 {error, Es, Ws} ->
-                    rebar_base_compiler:error_tuple(Config, Source,
+                    rebar_base_compiler:error_tuple(State, Source,
                                                     Es, Ws, Opts);
                 _ ->
                     ?FAIL
