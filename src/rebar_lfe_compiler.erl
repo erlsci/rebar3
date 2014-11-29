@@ -70,9 +70,9 @@ compile_lfe(Source, _Target, Config) ->
                    "  You must do one of the following:~n"
                    "    a) Install LFE globally in your erl libs~n"
                    "    b) Add LFE as a dep for your project, eg:~n"
-                   "       {lfe, \"0.6.1\",~n"
+                   "       {lfe, \"0.9.0\",~n"
                    "        {git, \"git://github.com/rvirding/lfe\",~n"
-                   "         {tag, \"v0.6.1\"}}}~n"
+                   "         {tag, \"v0.9.0\"}}}~n"
                    "~n", []),
             ?FAIL;
         _ ->
