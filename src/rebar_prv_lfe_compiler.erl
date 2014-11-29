@@ -6,6 +6,7 @@
 %%
 %% Copyright (c) 2009 Dave Smith (dizzyd@dizzyd.com),
 %%                    Tim Dysinger (tim@dysinger.net)
+%%                    Duncan McGreggor (duncan@lfe.io)
 %%
 %% Permission is hereby granted, free of charge, to any person obtaining a copy
 %% of this software and associated documentation files (the "Software"), to deal
@@ -26,29 +27,52 @@
 %% THE SOFTWARE.
 %% -------------------------------------------------------------------
 
--module(rebar_lfe_compiler).
+-module(rebar_prv_lfe_compiler).
 
--export([compile/2]).
+-behaviour(provider).
+
+-export([init/1,
+         do/1,
+         format_error/1]).
 
 %% for internal use only
 -export([info/2]).
 
 -include("rebar.hrl").
 
+-define(PROVIDER, lfe).
+-define(DEPS, []).
+
 %% ===================================================================
 %% Public API
 %% ===================================================================
+-spec init(rebar_state:t()) -> {ok, rebar_state:t()}.
+init(State) ->
+    State1 = rebar_state:add_provider(State, providers:create([{name, ?PROVIDER},
+                                                               {module, ?MODULE},
+                                                               {bare, false},
+                                                               {deps, ?DEPS},
+                                                               {example, "rebar lfe compile"},
+                                                               {short_desc, "Compile LFE source files."},
+                                                               {desc, ""},
+                                                               {opts, []}])),
+    {ok, State1}.
 
-compile(Config, Dir) ->
-    FirstFiles = rebar_config:get_list(Config, lfe_first_files, []),
-    rebar_base_compiler:run(Config,
-                            check_files(rebar_state:get(
-                                          Config, lfe_first_files, [])),
-                            filename:join(Dir, "src"),
-                            ".lfe",
-                            filename:join(Dir, "ebin"),
-                            ".beam",
-                            fun compile_lfe/3),
+do(Config) ->
+    Cwd = rebar_utils:get_cwd(),
+    FirstFiles = check_files(rebar_state:get(Config, lfe_first_files, [])),
+    Result = rebar_base_compiler:run(Config,
+                                     FirstFiles
+                                     filename:join(Cwd, "src"),
+                                     ".lfe",
+                                     filename:join(Cwd, "ebin"),
+                                     ".beam",
+                                     fun compile_lfe/3),
+    {Result, Config}.
+
+-spec format_error(any()) ->  iolist().
+format_error(Reason) ->
+    io_lib:format("~p", [Reason]).
 
 %% ===================================================================
 %% Internal functions
@@ -87,4 +111,17 @@ compile_lfe(Source, _Target, Config) ->
                 _ ->
                     ?FAIL
             end
+    end.
+
+%%
+%% Ensure all files in a list are present and abort if one is missing
+%%
+-spec check_files([file:filename()]) -> [file:filename()].
+check_files(FileList) ->
+    [check_file(F) || F <- FileList].
+
+check_file(File) ->
+    case filelib:is_regular(File) of
+        false -> ?ABORT("File ~p is missing, aborting\n", [File]);
+        true -> File
     end.
