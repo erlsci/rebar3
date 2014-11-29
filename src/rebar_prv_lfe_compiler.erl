@@ -39,7 +39,7 @@
 
 -include("rebar.hrl").
 
--define(PROVIDER, lfe).
+-define(PROVIDER, lfecompile).
 -define(DEPS, []).
 
 %% ===================================================================
@@ -53,7 +53,7 @@ init(State) ->
         {module, ?MODULE},
         {bare, false},
         {deps, ?DEPS},
-        {example, "rebar lfe compile"},
+        {example, "rebar lfecompile"},
         {short_desc, "Compile LFE source files."},
         {desc, get_info()},
         {opts, []}
