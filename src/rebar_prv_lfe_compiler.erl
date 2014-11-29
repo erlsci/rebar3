@@ -55,7 +55,7 @@ init(State) ->
         {deps, ?DEPS},
         {example, "rebar lfe compile"},
         {short_desc, "Compile LFE source files."},
-        {desc, info()},
+        {desc, get_info()},
         {opts, []}
     ]),
     State1 = rebar_state:add_provider(State, Provider),
@@ -80,16 +80,19 @@ format_error(Reason) ->
 %% ===================================================================
 %% Internal functions
 %% ===================================================================
-info() ->
-    info(help, compile).
+get_info() ->
+    get_info(help, compile).
 
-info(help, compile) ->
-    ?CONSOLE(
+get_info(help, compile) ->
+    (io_lib:format(
        "Build Lisp Flavoured Erlang (*.lfe) sources.~n"
        "~n"
        "Valid rebar.config options:~n"
        "  erl_opts is reused.~n",
-       []).
+       [])).
+
+info(help, compile) ->
+    ?CONSOLE(get_info(help, compile), []).
 
 compile_lfe(Source, _Target, State) ->
     case code:which(lfe_comp) of
