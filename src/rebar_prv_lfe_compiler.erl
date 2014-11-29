@@ -54,7 +54,7 @@ init(State) ->
         {example, "rebar lfecompile"},
         {short_desc, ?DESC},
         {desc, info(?DESC)},
-        {opts, []}
+        {opts, [{undefined, undefined, undefined, undefined, ""}]}
     ]),
     State1 = rebar_state:add_provider(State, Provider),
     {ok, State1}.
