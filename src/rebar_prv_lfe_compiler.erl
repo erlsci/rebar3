@@ -34,12 +34,10 @@
          do/1,
          format_error/1]).
 
-%% for internal use only
--export([info/2]).
-
 -include("rebar.hrl").
 
 -define(PROVIDER, lfecompile).
+-define(DESC, "Compile LFE source files.").
 -define(DEPS, []).
 
 %% ===================================================================
@@ -54,8 +52,8 @@ init(State) ->
         {bare, false},
         {deps, ?DEPS},
         {example, "rebar lfecompile"},
-        {short_desc, "Compile LFE source files."},
-        {desc, get_info()},
+        {short_desc, ?DESC},
+        {desc, info(?DESC)},
         {opts, []}
     ]),
     State1 = rebar_state:add_provider(State, Provider),
@@ -80,19 +78,15 @@ format_error(Reason) ->
 %% ===================================================================
 %% Internal functions
 %% ===================================================================
-get_info() ->
-    get_info(help, compile).
-
-get_info(help, compile) ->
-    (io_lib:format(
-       "Build Lisp Flavoured Erlang (*.lfe) sources.~n"
-       "~n"
-       "Valid rebar.config options:~n"
-       "  erl_opts is reused.~n",
-       [])).
-
-info(help, compile) ->
-    ?CONSOLE(get_info(help, compile), []).
+info(Description) ->
+    io_lib:format(
+        "~n~s~n"
+        "~n"
+        "No additional configuration options are required to compile~n"
+        "LFE (*.lfe) files. The rebar 'erl_opts' setting is reused by~n"
+        "LFE. For more information, see the rebar documentation for~n"
+        "'erl_opts'.",
+        [Description]).
 
 compile_lfe(Source, _Target, State) ->
     case code:which(lfe_comp) of
