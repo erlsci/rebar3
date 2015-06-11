@@ -31,6 +31,7 @@
                      rebar_prv_install_deps,
                      rebar_prv_packages,
                      rebar_prv_erlydtl_compiler,
+                     rebar_prv_lfe_compiler,
                      rebar_prv_compile,
                      rebar_prv_app_discovery,
                      rebar_prv_shell,
